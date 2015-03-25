@@ -1,0 +1,48 @@
+---
+- name: Ensure Ubuntu can support HTTPS
+  sudo: yes
+  apt:
+   name: apt-transport-https
+   state: present
+  tags:
+    - Shipwright
+
+- name: Copy PGP key for Docker APT repository
+  copy:
+    src: A88D21E9.gpg
+    dest: /tmp/A88D21E9.gpg
+  tags:
+    - Shipwright
+
+- name: Install PGP key for Docker APT repository
+  sudo: yes
+  apt_key:
+    file: /tmp/A88D21E9.gpg
+    id: 36A1D7869245C8950F966E92D8576A8BA88D21E9
+    state: present
+  tags:
+    - Shipwright
+
+- name: Add APT repository for Docker
+  sudo: yes
+  apt_repository:
+    repo: "deb https://get.docker.com/ubuntu docker main"
+    state: present
+    update_cache: yes
+  tags:
+    - Shipwright
+
+- name: Install Docker
+  sudo: yes
+  apt:
+   name: lxc-docker
+   state: present
+  tags:
+    - Shipwright
+
+- name: Login to Docker using Ansible Vault
+  sudo: yes
+  command: docker login -u="{{ docker_hub_user }}" -p="{{ docker_hub_pass }}" -e="{{ docker_hub_email }}"
+  when: docker_hub_user is defined and docker_hub_pass is defined and docker_hub_email is defined
+  tags:
+    - Shipwright
